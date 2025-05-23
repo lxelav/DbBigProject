@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Command Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        select, input, button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .additional-info {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Command Interface</h1>
+    <select id="commandSelect" onchange="showAdditionalFields()">
+        <option value="add-pool">Add pool</option>
+        <option value="remove-pool">Remove pool</option>
+        <option value="add-schema">Add schema</option>
+        <option value="remove-schema">Remove schema</option>
+        <option value="add-collection">Add collection</option>
+        <option value="remove-collection">Remove collection</option>
+        <option value="insert-data">Insert data</option>
+        <option value="update-data">Update data</option>
+        <option value="delete-data">Delete data</option>
+        <option value="execute">Execute</option>
+        <option value="save-state">Save</option>
+        <option value="exit">Exit</option>
+    </select>
+    <div id="additionalFields" class="additional-info">
+        <!-- Additional input fields will be inserted here dynamically -->
+    </div>
+    <button onclick="sendCommand()">Send Command</button>
+    <p id="response"></p>
+
+    <script>
+        function showAdditionalFields() {
+            const command = document.getElementById('commandSelect').value;
+            const additionalFieldsDiv = document.getElementById('additionalFields');
+            additionalFieldsDiv.innerHTML = ''; // Clear previous additional fields
+            
+            // Depending on the selected command, add different additional input fields
+            if (command === 'add-pool' || command === 'remove-pool') {
+                additionalFieldsDiv.innerHTML = `<input type="text" id="infoInput1" placeholder="Enter pool">`;
+            } else if (command === 'save-state') {
+                additionalFieldsDiv.innerHTML = `<input type="text" id="infoInput1" placeholder="Enter json-file">`;
+            } else if (command === 'add-schema' || command === 'remove-schema') {
+                additionalFieldsDiv.innerHTML = `
+                    <input type="text" id="infoInput1" placeholder="Enter pool">
+                    <input type="text" id="infoInput2" placeholder="Enter schema">
+                `;
+            } else if (command === 'add-collection' || command === 'remove-collection') {
+                additionalFieldsDiv.innerHTML = `
+                    <input type="text" id="infoInput1" placeholder="Enter pool">
+                    <input type="text" id="infoInput2" placeholder="Enter schema">
+                    <input type="text" id="infoInput3" placeholder="Enter collection">
+                    <input type="text" id="infoInput4" placeholder="Enter data">
+                `;
+            } else if (command === 'insert-data' || command === 'update-data' || command === 'delete-data') {
+                additionalFieldsDiv.innerHTML = `
+                    <input type="text" id="infoInput1" placeholder="Enter pool">
+                    <input type="text" id="infoInput2" placeholder="Enter schema">
+                    <input type="text" id="infoInput3" placeholder="Enter collection">
+                    <input type="text" id="infoInput4" placeholder="Enter key">
+                    <input type="text" id="infoInput5" placeholder="Enter info">
+                `;
+            }
+            
+            // Show the additional fields
+            additionalFieldsDiv.style.display = 'block';
+        }
+
+        function sendCommand() {
+            const command = document.getElementById('commandSelect').value;
+            const additionalInfoInputs = document.querySelectorAll('.additional-info input');
+            let additionalInfo = '';
+            additionalInfoInputs.forEach(input => {
+                additionalInfo += input.value + ' ';
+            });
+            
+            if (!command) {
+                document.getElementById('response').textContent = "Please select a command.";
+                return;
+            }
+
+            fetch(`/run-command?command=${encodeURIComponent(command + ' ' + additionalInfo.trim())}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('response').textContent = data.message;
+                })
+                .catch(error => {
+                    document.getElementById('response').textContent = `Error: ${error}`;
+                });
+        }
+    </script>
+</body>
+</html>
